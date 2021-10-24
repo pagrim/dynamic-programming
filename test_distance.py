@@ -48,7 +48,8 @@ def test_ed_calculate_3():
     assert (EditDistance(['editing', 'distance']).calculate() == 5)
 
 
-def test_lcs_calculate():
-    assert (LongestCommonSubsequence('275', '25').calculate() == 2)
-    assert (LongestCommonSubsequence('7', '1234').calculate() == 0)
-    assert (LongestCommonSubsequence('2783', '5287').calculate() == 2)
+def test_lcs_calculate_2dim():
+    assert (LongestCommonSubsequence(['275', '25']).calculate() == 2)
+    assert (LongestCommonSubsequence(['7', '1234']).calculate() == 0)
+    assert (LongestCommonSubsequence(['2783', '5287']).calculate() == 2)
+
