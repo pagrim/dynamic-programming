@@ -53,3 +53,7 @@ def test_lcs_calculate_2dim():
     assert (LongestCommonSubsequence(['7', '1234']).calculate() == 0)
     assert (LongestCommonSubsequence(['2783', '5287']).calculate() == 2)
 
+
+def test_lcs_calculate_3dim():
+    assert (LongestCommonSubsequence(['123', '213', '135']).calculate() == 2)
+    assert (LongestCommonSubsequence([[8, 3, 2, 1, 7], [8, 2, 1, 3, 8, 10, 7], [6, 8, 3, 1, 4, 7]]).calculate() == 3)

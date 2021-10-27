@@ -8,7 +8,7 @@ class Distance:
 
     def __init__(self, words):
         self.spacer = "-"
-        self.words = [self.spacer + word for word in words]
+        self.words = [[self.spacer] + [char for char in word] for word in words]
         self.memo = self.initialise_memo()
 
     def initialise_memo(self):
@@ -50,7 +50,6 @@ class Distance:
         next_indices = [list(idx) for idx in product(*index_ranges) if list(idx) != index]
         print('Next indices:', next_indices)
         return next_indices
-
 
     def get_min_max(self, index):
         pass
