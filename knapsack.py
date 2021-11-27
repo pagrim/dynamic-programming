@@ -27,13 +27,13 @@ class Knapsack:
 
     def _calc_max_value(self, target_weight, weights_used):
         if target_weight == 0:
-            logger.info('Found zero option, weights used %s', weights_used)
+            logger.debug('Found zero option, weights used %s', weights_used)
             max_val = 0
         else:
             option_triples = self.fetch_options(target_weight, weights_used)
-            logger.info('Target weight %s, options weights, values, indexes %s', target_weight, option_triples)
+            logger.debug('Target weight %s, options weights, values, indexes %s', target_weight, option_triples)
             options = [self._calc_max_value(opt_wgt, self.update_weights(weights_used, idx)) + val for opt_wgt, val, idx in option_triples]
-            logger.info('Target weight %s, options %s, weights used %s', target_weight, options, weights_used)
+            logger.debug('Target weight %s, options %s, weights used %s', target_weight, options, weights_used)
             if len(options) == 0:
                 max_val = 0
             else:

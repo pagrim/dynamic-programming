@@ -30,7 +30,7 @@ class ArithmeticExpression:
 
     def calculate(self):
         ordered_indices = [(i, i+s) for s in range(0, self.num_digits) for i in range(0, self.num_digits-s)]
-        logger.info('Calculated ordered indices as %s', ordered_indices)
+        logger.debug('Calculated ordered indices as %s', ordered_indices)
         for (i, j) in ordered_indices:
             self._calculate(i, j)
         logger.info('Computed min memo \n%s', self.min_results)
@@ -42,7 +42,7 @@ class ArithmeticExpression:
         return calculated.min_results[0, self.num_digits -1], calculated.max_results[0, self.num_digits - 1]
 
     def _calculate(self, i, j):
-        logger.info('Calcularting for (%d, %d)', i, j)
+        logger.debug('Calcularting for (%d, %d)', i, j)
         if i == j:
             min_val, max_val = self.digits[i], self.digits[i]
             self.set_memo(i, j, min_val, max_val)
@@ -53,7 +53,7 @@ class ArithmeticExpression:
             min_val = min([val for val, _ in combination_min_max])
             max_val = max([val for _, val in combination_min_max])
             self.set_memo(i, j, min_val, max_val)
-        logger.info('Computed min and max for (%d, %d) as (%d, %d)', i, j, min_val, max_val)
+        logger.debug('Computed min and max for (%d, %d) as (%d, %d)', i, j, min_val, max_val)
         return min_val, max_val
 
     def set_memo(self, i, j, min_val, max_val):
