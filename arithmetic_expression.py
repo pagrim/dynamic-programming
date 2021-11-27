@@ -1,65 +1,122 @@
-from operator import add, sub, mul, truediv
-from itertools import product
 import numpy as np
-from operator import itemgetter
 import sys
+from itertools import product
+from operator import mul, add, sub, truediv
+import re
+
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('arithmetic_expression')
 
-
 class ArithmeticExpression:
 
     def __init__(self, digits, operations):
-        self.num_operations = len(operations)
-        assert (self.num_operations == len(digits) - 1)
+        assert(len(operations) == len(digits) - 1)
         self.digits = digits
-        self.operations = self.format_ops(operations)
-        self.operator_counts = self.get_operator_counts
-        self.min_memo = self.init_memo(sys.maxsize)
-        self.max_memo = self.init_memo(-sys.maxsize)
+        self.op_map = {'+': add, '-': sub, '/': truediv, '*': mul}
+        self.num_digits = len(digits)
+        self.operations_str = operations
+        self.operations = self.init_operations(operations)
+        self.min_results = self.init_matrix(sys.maxsize)
+        self.max_results = self.init_matrix(-sys.maxsize)
 
-    @staticmethod
-    def format_ops(operations):
-        ops_dict = {'+': add, '-': sub, '*': mul, '/': truediv}
-        return [ops_dict[op] for op in operations]
 
-    def get_operator_counts(self):
-        counts = [(j - i, i, j) for j in range(self.num_operations) for i in range(self.num_operations) if j - i > 0]
-        return sorted(counts, key=itemgetter(0), reverse=True)
+    def init_operations(self, operations):
+        return [self.op_map[op] for op in operations]
 
-    def init_memo(self, init_val):
-        return np.full(shape=(self.num_operations, self.num_operations), fill_value=init_val)
+    def init_matrix(self, init_val):
+        return np.full((self.num_digits, self.num_digits), init_val)
 
-    def calculate_max(self):
-        operator_counts = self.get_operator_counts()
-        for _, i, j in operator_counts:
-            logger.info('Calculating min max for (i, j)=(%s, %s)', i, j)
-            self.min_memo[i, j], self.max_memo[i, j] = self.min_max(i, j)
-        return self.max_memo[1, self.num_operations]
+    def calculate(self):
+        ordered_indices = [(i, i+s) for s in range(0, self.num_digits) for i in range(0, self.num_digits-s)]
+        logger.info('Calculated ordered indices as %s', ordered_indices)
+        for (i, j) in ordered_indices:
+            self._calculate(i, j)
+        logger.info('Computed min memo \n%s', self.min_results)
+        logger.info('Computed max memo \n%s', self.max_results)
+        return self
 
-    def min_max(self, i, j):
+    def calculate_min_max(self):
+        calculated = self.calculate()
+        return calculated.min_results[0, self.num_digits -1], calculated.max_results[0, self.num_digits - 1]
+
+    def _calculate(self, i, j):
+        logger.info('Calcularting for (%d, %d)', i, j)
         if i == j:
-            min_combinations, max_combinations = self.digits[i], self.digits[i]
+            min_val, max_val = self.digits[i], self.digits[i]
+            self.set_memo(i, j, min_val, max_val)
+        elif self.has_memo_value(i, j):
+            min_val, max_val = self.fetch_memo(i, j)
         else:
-            min_combinations = min([self.get_combinations(i, j, k) for k in range(i, j)])
-            max_combinations = max([self.get_combinations(i, j, k) for k in range(i, j)])
-        return min_combinations, max_combinations
+            combination_min_max = [self.get_combinations(i, j, k) for k in range(i, j)]
+            min_val = min([val for val, _ in combination_min_max])
+            max_val = max([val for _, val in combination_min_max])
+            self.set_memo(i, j, min_val, max_val)
+        logger.info('Computed min and max for (%d, %d) as (%d, %d)', i, j, min_val, max_val)
+        return min_val, max_val
+
+    def set_memo(self, i, j, min_val, max_val):
+        self.min_results[i, j] = min_val
+        self.max_results[i, j] = max_val
+
+    def has_memo_value(self, i, j):
+        return self.min_results[i, j] < sys.maxsize and self.max_results[i, j] > -sys.maxsize
+
+    def fetch_memo(self, i, j):
+        return self.min_results[i, j],  self.max_results[i, j]
 
     def get_combinations(self, i, j, k):
-        min_max_ops = [min, max]
-        min_max_op_combinations = product(min_max_ops, min_max_ops)
-        combinations = [self.operations[k](self.fetch_operate(op1, i, k), self.fetch_operate(op2, k + 1, j)) for
-                        op1, op2 in min_max_op_combinations]
-        logger.info('Combinations %s', combinations)
-        return combinations
+        min_max_combinations = product(self._calculate(i, k), self._calculate(k+1, j))
+        combination_values = [self.operations[k](prod1, prod2) for prod1, prod2 in min_max_combinations]
+        return min(combination_values), max(combination_values)
 
-    def fetch_operate(self, operation, i, j):
-        if operation == min and self.min_memo[i, j] != sys.maxsize:
-            result = self.min_memo[i, j]
-        elif operation == max and self.max_memo[i, j] != -sys.maxsize:
-            result = self.max_memo[i, j]
+    def retrace(self, target_min_max, target_value):
+        retrace_str = self._retrace(Expression(0,self.num_digits -1), target_min_max, target_value)
+        return self.tidy_retrace(retrace_str)
+
+    def _retrace(self, expression, target_min_max, target_value):
+        if expression.lower_index == expression.upper_index:
+            return str(self.digits[expression.lower_index])
         else:
-            result = operation(self.min_max(i, j))
-        return result
+            for k in range(expression.lower_index, expression.upper_index + 1):
+                logger.debug('For index k %s', k)
+                candidate_expression_indices = [(expression.lower_index, k), (k+1, expression.upper_index)]
+                logger.debug('Candidate expression indices %s', candidate_expression_indices)
+                target_min_max_pair = self.evaluate(self.operations_str[k], target_min_max)
+                logger.debug('Target min max pair %s', target_min_max_pair)
+                candidate_expression_components = self.fetch_components(candidate_expression_indices,
+                target_min_max_pair)
+                logger.debug('Candidate expression components %s', candidate_expression_components)
+                candidate_expression_value = self.operations[k](*candidate_expression_components)
+                if candidate_expression_value == target_value:
+                    retrace_lower = self._retrace(Expression(expression.lower_index, k), target_min_max_pair[0],
+                    candidate_expression_components[0])
+                    retrace_upper = self._retrace(Expression(k+1, expression.upper_index), target_min_max_pair[1],
+                    candidate_expression_components[1])
+                    return f'({retrace_lower}){self.operations_str[k]}({retrace_upper})'
+
+    @staticmethod
+    def tidy_retrace(retrace_str):
+        return re.sub(r'\((\d)\)', r'\1', retrace_str)
+
+
+    def evaluate(self, operator, target_min_max):
+        target_operator_map = {
+        'max': {'+': ('max', 'max'), '*': ('max', 'max'), '-': ('max', 'min'), '/': ('max', 'min')},
+        'min': {'+': ('min', 'min'), '*': ('min', 'min'), '-': ('min', 'max'), '/': ('min', 'max')},
+        }
+        return target_operator_map[target_min_max][operator]
+
+    def fetch_components(self, candidate_expression_indices, target_min_max_pair):
+        components = [self.min_results[indices[0], indices[1]] if tmm == 'min' else self.max_results[indices[0], indices[1]]
+        for tmm, indices in zip(list(target_min_max_pair), candidate_expression_indices)]
+        return components
+
+
+
+class Expression:
+
+    def __init__(self, lower_index, upper_index):
+        self.lower_index = lower_index
+        self.upper_index = upper_index
