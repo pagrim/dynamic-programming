@@ -26,14 +26,15 @@ class ArithmeticExpression:
         return [ops_dict[op] for op in operations]
 
     def get_operator_counts(self):
-        counts = [(i - j, i, j) for j in range(self.num_operations) for i in range(self.num_operations) if i - j > 0]
+        counts = [(j - i, i, j) for j in range(self.num_operations) for i in range(self.num_operations) if j - i > 0]
         return sorted(counts, key=itemgetter(0), reverse=True)
 
     def init_memo(self, init_val):
         return np.full(shape=(self.num_operations, self.num_operations), fill_value=init_val)
 
     def calculate_max(self):
-        for _, i, j in self.get_operator_counts():
+        operator_counts = self.get_operator_counts()
+        for _, i, j in operator_counts:
             logger.info('Calculating min max for (i, j)=(%s, %s)', i, j)
             self.min_memo[i, j], self.max_memo[i, j] = self.min_max(i, j)
         return self.max_memo[1, self.num_operations]
