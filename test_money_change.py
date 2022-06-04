@@ -15,6 +15,7 @@ def test_change_1():
     mc = MoneyChange([4, 3, 1])
     assert (mc.change(34) == [4, 4, 4, 4, 4, 4, 4, 3, 3])
 
+
 def test_change_2():
     mc = MoneyChange([4, 3, 1])
     assert (mc.change(2) == [1, 1])

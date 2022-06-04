@@ -1,3 +1,5 @@
+import sys
+
 from typing import List
 from operator import itemgetter
 
@@ -28,5 +30,6 @@ class MoneyChange:
 
 
 if __name__ == '__main__':
+    target = int(sys.stdin.read())
     mc = MoneyChange([4, 3, 1])
-    print(mc.change(34))
+    print(mc.change(target))
