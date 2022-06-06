@@ -1,32 +1,37 @@
 import sys
 
 from typing import List
-from operator import itemgetter
+import logging
+logging.basicConfig()
 
 
 class MoneyChange:
     def __init__(self, coin_set: List[int]):
         self.coin_set = coin_set
         self.memo = {}
+        self.logger = logging.getLogger('money_change')
 
-    def change(self, target: int) -> List[int]:
-        return self._change([], target)
+    def change(self, target: int) -> int:
+        self._change([], target)
+        return len(self.memo[0])
 
-    def _change(self, coins_used: List[int], target: int) -> List[int]:
-        print('Used coins:', coins_used, 'target:', target, 'memo:', self.memo)
+    def _change(self, coins_used: List[int], target: int) -> None:
+        self.logger.debug('Used coins: %s target: %s, memo: %s ', coins_used, target, self.memo)
+        try:
+            curr_num_coins = len(self.memo[target])
+        except KeyError:
+            curr_num_coins = sys.maxsize
+        if len(coins_used) < curr_num_coins:
+            self.memo[target] = coins_used
         if target == 0:
-            return coins_used
+            return
         else:
-            try:
-                result = self.memo[target]
-            except KeyError:
-                candidates = [cn for cn in self.coin_set if target - cn >= 0]
-                options = [self._change(coins_used + [cn], target - cn) for cn in candidates]
-                option_lengths = [(i, len(opt)) for i, opt in enumerate(options)]
-                result_index = min(option_lengths, key=itemgetter(1))[0]
-                result = options[result_index]
-                self.memo[target] = result
-            return result
+            candidates = [cn for cn in self.coin_set if target - cn >= 0]
+            for coin in candidates:
+                self._change(coins_used + [coin], target - coin)
+
+    def clear_memo(self):
+        self.memo = {}
 
 
 if __name__ == '__main__':
