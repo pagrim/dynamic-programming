@@ -1,15 +1,18 @@
 from typing import Dict
 import logging
 import sys
-from dataclasses import dataclass
 
 logging.basicConfig()
 
 
-@dataclass
 class MemoItem:
-    num_ops: int
-    prev_op: int
+
+    def __init__(self, num_ops, prev_op):
+        self.num_ops = num_ops
+        self.prev_op = prev_op
+
+    def __eq__(self, other):
+        return self.num_ops == other.num_ops and self.prev_op == other.prev_op
 
 
 class PrimitiveCalculator:
