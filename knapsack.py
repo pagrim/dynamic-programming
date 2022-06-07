@@ -1,14 +1,16 @@
-from dataclasses import dataclass
 import logging
+import sys
+import re
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('knapsack')
 
 
-@dataclass
 class WeightsValue:
-    weights: list
-    value: int
+
+    def __init__(self, weights, values):
+        self.weights = weights
+        self.values = values
 
 
 class Knapsack:
@@ -75,3 +77,13 @@ class KnapsackNoRepetition(Knapsack):
 
     def available_weight(self, weights_used, index):
         return weights_used[index] == 0
+
+
+if __name__ == '__main__':
+    match_object = re.match(r'(\d+)\s(\d+)', sys.stdin.readline().rstrip())
+    capacity = int(match_object.group(1))
+    num_bars = int(match_object.group(2))
+    weights = [int(w) for w in sys.stdin.readline().rstrip().split(" ")]
+    knr = KnapsackNoRepetition(weights, weights, capacity)
+    print(knr.calc_max_value())
+
