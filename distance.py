@@ -1,8 +1,7 @@
-import numpy as np
 from itertools import product, groupby
-from operator import mul
-from functools import reduce
+
 import logging
+import sys
 
 
 class Distance:
@@ -10,16 +9,8 @@ class Distance:
     def __init__(self, words):
         self.spacer = "-"
         self.words = [[self.spacer] + [char for char in word] for word in words]
-        self.memo = self.initialise_memo()
+        self.memo = {}
         self.logger = logging.getLogger('distance')
-
-    def initialise_memo(self):
-        word_lengths = [len(word) for word in self.words]
-        memo_size = reduce(mul, word_lengths)
-        init_values = np.ones(memo_size) * -1
-        init_values[0] = 0
-        init_memo = np.reshape(init_values, word_lengths)
-        return init_memo
 
     def calculate(self):
         return self._calculate([len(word) -1 for word in self.words])
@@ -29,10 +20,9 @@ class Distance:
         if sum(index) == 0:
             distance = 0
         else:
-            memo_value = self.memo[tuple(index)]
-            if memo_value != -1:
-                distance = memo_value
-            else:
+            try:
+                distance = self.memo[tuple(index)]
+            except KeyError:
                 computed_value = self.get_min_max(index)
                 self.memo[tuple(index)] = computed_value
                 self.logger.debug('Set distance for %s to %s', index, computed_value)
@@ -102,3 +92,9 @@ class LongestCommonSubsequence(Distance):
         next_costs = self.get_next_costs(index, next_indices)
         next_indices_valid = self.check_valid(next_indices)
         return max([self._calculate(ni) + nc for ni, nc, niv in zip(next_indices, next_costs, next_indices_valid) if niv])
+
+
+if __name__ == '__main__':
+    wrd1 = sys.stdin.readline()
+    wrd2 = sys.stdin.readline()
+    print(EditDistance([wrd1, wrd2]).calculate())
