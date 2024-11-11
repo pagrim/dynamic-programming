@@ -23,7 +23,7 @@ def test__find_min_operations():
 ])
 def test_find_min_operations(target, exp_num_ops, exp_trace):
     assert (pc.find_min_operations(target=target) == exp_num_ops)
-    assert pc.backtrace(target) == exp_trace
+    assert list(pc.backtrace(target)) == exp_trace
     pc.clear_memo()
 
 
@@ -35,4 +35,3 @@ def test_large_min_operations(target, exp_num_ops):
     backtrace = pc.backtrace(target)
     assert(len(backtrace) == exp_num_ops + 1)
     pc.clear_memo()
-

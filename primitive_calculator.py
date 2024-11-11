@@ -1,6 +1,7 @@
 from typing import Dict
 import logging
 import sys
+from collections import deque
 
 logging.basicConfig()
 
@@ -43,13 +44,13 @@ class PrimitiveCalculator:
         return self.memo
 
     def backtrace(self, target):
-        result = []
+        result = deque()
         trace_val = target
         while trace_val != 1:
             memo_item = self.memo[trace_val]
-            result.insert(0, trace_val)
+            result.appendleft(trace_val)
             trace_val = self.operations[memo_item.prev_op](trace_val)
-        result.insert(0, 1)
+        result.appendleft(1)
         return result
 
 
@@ -60,4 +61,3 @@ if __name__ == '__main__':
     min_ops = pc.find_min_operations(target)
     print(min_ops.num_ops)
     print(" ".join([str(el) for el in pc.backtrace(target)]))
-
