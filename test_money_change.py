@@ -5,12 +5,14 @@ import pytest
 
 def test__change_base():
     mc = MoneyChange([1])
-    assert (mc._change(0) == [0])
+    mc._change(0)
+    assert mc.memo == [0]
 
 
 def test__change():
     mc = MoneyChange([1])
-    assert (mc._change(2) == [0, 1, 2])
+    mc._change(2)
+    assert mc.memo == [0, 1, 2]
 
 
 @pytest.mark.parametrize(('target', 'exp_res'), [
@@ -20,5 +22,3 @@ def test__change():
 def test_change(target, exp_res):
     mc = MoneyChange([4, 3, 1])
     assert (mc.change(target) == exp_res)
-    mc.clear_memo()
-

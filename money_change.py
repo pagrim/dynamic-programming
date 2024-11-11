@@ -17,17 +17,12 @@ class MoneyChange:
         for trgt in range(1, target + 1):
             for coin in self.coin_set:
                 if trgt - coin >= 0:
-                    num_coins = self.memo[trgt - coin] + 1
-                    if num_coins < self.memo[trgt]:
-                        self.memo[trgt] = num_coins
-        return self.memo
+                    self.memo[trgt] = min(self.memo[trgt], self.memo[trgt - coin] + 1)
+        self.logger.info('Built memo %s', self.memo)
 
     def change(self, target: int) -> int:
-        return self._change(target)[target]
-
-    def clear_memo(self):
-        self.memo = {}
-
+        self._change(target)
+        return self.memo[target]
 
 if __name__ == '__main__':
     target = int(sys.stdin.read())
